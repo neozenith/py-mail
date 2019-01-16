@@ -17,9 +17,14 @@ def main():
     print("Welcome")
 
     sender_email = "neozenith.dev@gmail.com"
-    smtp_server = "smtp.gmail.com"
-    port = 587
-    password = getpass.getpass(prompt="Type your password and press enter: ")
+    smtp_server = "localhost"
+    port = 1025
+
+    receiver_email = "neozenith.dev@gmail.com"
+    message = """\
+Subject: Hi there
+
+    This message is sent from Python."""
 
     # Create a secure SSL context
     context = ssl.create_default_context()
@@ -28,9 +33,15 @@ def main():
     try:
         server = smtplib.SMTP(smtp_server, port)
         server.ehlo()  # Can be omitted
-        server.starttls(context=context)  # Secure the connection
-        server.ehlo()  # Can be omitted
-        server.login(sender_email, password)
+        if smtp_server != "localhost":
+            server.starttls(context=context)  # Secure the connection
+            server.ehlo()  # Can be omitted
+
+            password = getpass.getpass(prompt="Type your password and press enter: ")
+            server.login(sender_email, password)
+
+        server.sendmail(sender_email, receiver_email, message)
+
         # TODO: Send email here
     except Exception as e:
         # Print any error messages to stdout
