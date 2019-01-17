@@ -32,7 +32,7 @@ def main():
           How are you?<br>
           <a href="http://www.realpython.com">Real Python</a>
           has many great tutorials.
-          <img src="cid:$chart" />
+          <img style="width: 50%" src="cid:$chart" />
         </p>
       </body>
     </html>
