@@ -1,19 +1,9 @@
-import base64
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 import getpass
 from string import Template
-
-
-def embed_html_b64image(filename, alt_text="", encoding="image/png", style=""):
-    """Embed image as base64 data in an HTML img tag"""
-
-    with open(filename, mode="rb") as file:
-        fileContent = file.read()
-
-    b64fileContent = base64.standard_b64encode(fileContent)
-    return f"<img alt='{alt_text}' style='{style}'src='data:{encoding};base64,{b64fileContent.decode()}'/>"
 
 
 def main():
@@ -22,6 +12,7 @@ def main():
     host = "smtp.gmail.com"
     port = 587
     login = "neozenith.dev@gmail.com"
+    attachment = "plot-red-dot.png"
 
     message = MIMEMultipart("alternative")
     message["Subject"] = "multipart test"
@@ -32,7 +23,7 @@ def main():
     How are you?
     Real Python has many great tutorials:
     www.realpython.com"""
-    chart_embedding = embed_html_b64image("plot-red-dot.png", alt_text="6 scatterplots")
+    # TODO: refactor content templating
     html = Template(
         """\
     <html>
@@ -41,21 +32,27 @@ def main():
           How are you?<br>
           <a href="http://www.realpython.com">Real Python</a>
           has many great tutorials.
-          $chart
+          <img src="cid:$chart" />
         </p>
       </body>
     </html>
     """
-    ).substitute(chart=chart_embedding)
+    ).substitute(chart=attachment)
 
     message.attach(MIMEText(text, "plain"))
     message.attach(MIMEText(html, "html"))
+
+    with open(attachment, "rb") as fp:
+        msgImage = MIMEImage(fp.read())
+        msgImage.add_header("Content-ID", f"<{attachment}>")
+    message.attach(msgImage)
 
     with smtplib.SMTP(host, port) as server:
 
         if host != "localhost":
             context = ssl.create_default_context()
             server.starttls(context=context)
+            # login = input(f"Username for {host}:")
             password = getpass.getpass(prompt="Type your password and press enter: ")
             server.login(login, password)
 
