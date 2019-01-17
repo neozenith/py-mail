@@ -27,12 +27,29 @@ def main():
     html = Template(
         """\
     <html>
+    <head>
+        <style>
+            .colored {
+                color: blue;
+            }
+            #body {
+                font-size: 18pt;
+            }
+            @media screen and (min-width: 500px) {
+                .colored {
+                color:red;
+                }
+            }
+        </style>
+    </head>
       <body>
-        <p>Hi,<br>
-          How are you?<br>
-          <a href="http://www.realpython.com">Real Python</a>
-          has many great tutorials.
-          <img style="width: 50%" src="cid:$chart" />
+        <p class='colored'>Hi,<br>
+
+        <img style="width: 50%" src="cid:$chart" />
+
+            How are you?<br>
+            <a href="http://www.realpython.com">Real Python</a>
+            has many great tutorials.
         </p>
       </body>
     </html>
