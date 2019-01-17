@@ -5,33 +5,6 @@ from email.mime.multipart import MIMEMultipart
 import getpass
 from string import Template
 
-server = {"host": "localhost", "port": 1025, "login": "neozenith.dev@gmail.com"}
-
-message = MIMEMultipart("alternative")
-message["Subject"] = "multipart test"
-message["From"] = "neozenith.dev@gmail.com"
-message["To"] = "neozenith.dev@gmail.com"
-text = """\
-Hi,
-How are you?
-Real Python has many great tutorials:
-www.realpython.com"""
-html = """\
-<html>
-  <body>
-    <p>Hi,<br>
-       How are you?<br>
-       <a href="http://www.realpython.com">Real Python</a>
-       has many great tutorials.
-       $(chart)
-    </p>
-  </body>
-</html>
-"""
-
-message.attach(MIMEText(text, "plain"))
-message.attach(MIMEText(html, "html"))
-
 
 def embed_html_b64image(filename, alt_text="", encoding="image/png", style=""):
     """Embed image as base64 data in an HTML img tag"""
@@ -43,31 +16,50 @@ def embed_html_b64image(filename, alt_text="", encoding="image/png", style=""):
     return f"<img alt='{alt_text}' style='{style}'src='data:{encoding};base64,{b64fileContent.decode()}'/>"
 
 
-def connect_email_server(host, port, user="", password=None):
-    # Create a secure SSL context
-    context = ssl.create_default_context()
-
-    email_server = smtplib.SMTP(host, port)
-    email_server.ehlo()  # Can be omitted
-    if server["host"] != "localhost":
-        email_server.starttls(context=context)  # Secure the connection
-        email_server.ehlo()  # Can be omitted
-
-        password = getpass.getpass(prompt="Type your password and press enter: ")
-        email_server.login(user, password)
-
-    return email_server
-
-
 def main():
-    print("Welcome")
+    print("Python Email Sender")
 
-    email_server = connect_email_server(server["host"], server["port"], server["login"])
+    host = "smtp.gmail.com"
+    port = 587
+    login = "neozenith.dev@gmail.com"
 
-    if email_server:
-        email_server.sendmail(message["From"], message["To"], message.as_string())
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "multipart test"
+    message["From"] = "neozenith.dev@gmail.com"
+    message["To"] = "neozenith.dev@gmail.com"
+    text = """\
+    Hi,
+    How are you?
+    Real Python has many great tutorials:
+    www.realpython.com"""
+    chart_embedding = embed_html_b64image("plot-red-dot.png", alt_text="6 scatterplots")
+    html = Template(
+        """\
+    <html>
+      <body>
+        <p>Hi,<br>
+          How are you?<br>
+          <a href="http://www.realpython.com">Real Python</a>
+          has many great tutorials.
+          $chart
+        </p>
+      </body>
+    </html>
+    """
+    ).substitute(chart=chart_embedding)
 
-        email_server.quit()
+    message.attach(MIMEText(text, "plain"))
+    message.attach(MIMEText(html, "html"))
+
+    with smtplib.SMTP(host, port) as server:
+
+        if host != "localhost":
+            context = ssl.create_default_context()
+            server.starttls(context=context)
+            password = getpass.getpass(prompt="Type your password and press enter: ")
+            server.login(login, password)
+
+        server.sendmail(message["From"], message["To"], message.as_string())
 
 
 if __name__ == "__main__":
